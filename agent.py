@@ -9,12 +9,18 @@ def read_status(service: str) -> str:
     return f"{service}: healthy"
 
 
+@function_tool
+def read_metrics(service: str) -> str:
+    """Return a bounded, read-only metric summary for the requested service."""
+    return f"{service}: requests=42 errors=0"
+
+
 owner_gate = InputGuardrail(guardrail_function=lambda value: value)
 root = Agent(
     name="v2_release_agent",
     instructions="Read deployment status only. Never mutate infrastructure.",
     model="gpt-5-mini",
-    tools=[read_status],
+    tools=[read_status, read_metrics],
     input_guardrails=[owner_gate],
 )
 

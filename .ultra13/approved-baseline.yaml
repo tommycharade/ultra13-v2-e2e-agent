@@ -1,0 +1,705 @@
+{
+  "kind": "AgentSecurityManifest",
+  "spec": {
+    "policy": {
+      "toolDrift": "deny",
+      "inputDrift": "monitor",
+      "egressDrift": "monitor",
+      "memoryDrift": "monitor",
+      "approvalDrift": "critical",
+      "autonomyDrift": "critical",
+      "identityDrift": "monitor",
+      "resourceDrift": "monitor",
+      "sequenceDrift": "critical",
+      "approvalBypass": "critical",
+      "executionDrift": "critical",
+      "privilegeDrift": "monitor",
+      "undeclaredTool": "deny",
+      "delegationDrift": "monitor",
+      "undeclaredEgress": "deny",
+      "requiredTelemetry": [
+        "TOOL_DRIFT",
+        "APPROVAL_DRIFT",
+        "EXECUTION_DRIFT",
+        "AUTONOMY_DRIFT",
+        "SEQUENCE_DRIFT"
+      ],
+      "maxTelemetryAgeMinutes": 1440
+    },
+    "autonomy": {
+      "allowedModes": [
+        "supervised"
+      ]
+    },
+    "framework": "openai-agents",
+    "allowedTools": [
+      "read_status"
+    ],
+    "toolPolicies": [
+      {
+        "name": "read_status",
+        "capabilities": [
+          "SENSITIVE_READ"
+        ]
+      }
+    ],
+    "allowedAgents": [
+      "v2_release_agent"
+    ],
+    "allowedEgress": [
+      "local"
+    ],
+    "allowedMemory": [],
+    "allowedModels": [
+      "gpt-5-mini"
+    ],
+    "allowedScopes": [
+      "status:read"
+    ],
+    "codeExecution": {
+      "allowed": false
+    },
+    "compatibility": [
+      {
+        "reason": "exact dependency evidence resolved to a tested supported pairing",
+        "status": "supported",
+        "package": "openai-agents",
+        "version": "0.19.4",
+        "evidence": [
+          {
+            "line": 1,
+            "type": "dependency_version",
+            "location": "requirements.txt",
+            "discoveryMethod": "version_manifest:requirements.txt"
+          },
+          {
+            "line": 5,
+            "type": "dependency_version",
+            "location": "uv.lock",
+            "discoveryMethod": "version_manifest:uv.lock"
+          },
+          {
+            "line": 1,
+            "type": "dependency_version",
+            "location": "requirements.txt",
+            "discoveryMethod": "version_manifest:requirements.txt"
+          },
+          {
+            "line": 5,
+            "type": "dependency_version",
+            "location": "uv.lock",
+            "discoveryMethod": "version_manifest:uv.lock"
+          }
+        ],
+        "language": "python",
+        "pluginId": "ultra13.openai_agents.python.v0_19",
+        "ecosystem": "pypi",
+        "framework": "openai-agents",
+        "confidence": "CONFIRMED",
+        "constraint": "==0.19.4",
+        "pluginVersion": "0.2.0",
+        "upstreamCommit": "92aa1b905306d7f5a130d911061c44cddeaa6e20"
+      }
+    ],
+    "humanApproval": {
+      "requiredFor": []
+    },
+    "inputPolicies": [
+      {
+        "trust": [
+          "untrusted"
+        ],
+        "sourceType": "handle input"
+      },
+      {
+        "trust": [
+          "trusted"
+        ],
+        "sourceType": "ci-dispatch"
+      }
+    ],
+    "maestroPolicy": {
+      "requiredLayers": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6",
+        "L7"
+      ],
+      "blockConfirmedSeverity": "high",
+      "blockSuspectedCritical": true,
+      "blockNewCrossLayerPaths": true,
+      "maximumCriticalUnknowns": 3,
+      "maximumEvidenceAgeMinutes": 1440
+    },
+    "deploymentUnit": {
+      "id": "unit_818c30d51774f002625f53931df0e514",
+      "commit": "9927270313e3b44da97b1db75e6a083d3e4ca740",
+      "evidence": [
+        {
+          "type": "build",
+          "location": "Dockerfile",
+          "discoveryMethod": "static_anchor@ultra13-deployment-discovery/v10"
+        },
+        {
+          "type": "manifest",
+          "location": "requirements.txt",
+          "discoveryMethod": "static_anchor@ultra13-deployment-discovery/v10"
+        },
+        {
+          "type": "lock",
+          "location": "uv.lock",
+          "discoveryMethod": "static_anchor@ultra13-deployment-discovery/v10"
+        },
+        {
+          "type": "framework_source",
+          "location": "agent.py",
+          "discoveryMethod": "static_signature@ultra13-deployment-discovery/v10"
+        },
+        {
+          "type": "entrypoint",
+          "location": "agent.py",
+          "discoveryMethod": "static_entrypoint@ultra13-deployment-discovery/v10"
+        },
+        {
+          "type": "entrypoint",
+          "location": "test_agent.py",
+          "discoveryMethod": "static_entrypoint@ultra13-deployment-discovery/v10"
+        }
+      ],
+      "buildPath": "Dockerfile",
+      "lockPaths": [
+        "uv.lock"
+      ],
+      "entrypoint": "agent.py",
+      "repository": "tommycharade/ultra13-v2-e2e-agent",
+      "selectedAt": "2026-08-17T09:57:46.332586445Z",
+      "selectedBy": "usr_d2a4c63e1618ecced827b6a2c8a1f440",
+      "candidateId": "cand_882d33cec12290a7422c57035d00316f",
+      "buildContext": ".",
+      "sourceDigest": "sha256:e32428e24f8c96d9557e730c9417871212be10124ff8b9607071b493348e3d3e",
+      "manifestPaths": [
+        "requirements.txt"
+      ],
+      "schemaVersion": "ultra13.deployment-unit/v1alpha1",
+      "applicationRoot": ".",
+      "detectorVersion": "ultra13-deployment-discovery/v10",
+      "selectionReason": "GitHub Actions now reproduces this exact V2-selected repository root, entrypoint, Dockerfile, production Lambda target and AWS region.",
+      "deploymentRegion": "eu-west-2",
+      "deploymentTarget": "aws-lambda",
+      "deploymentProfile": "production",
+      "configurationDigest": "sha256:818c30d51774f002625f53931df0e5141b0d26eb4e6f566dc69601ebb6a12581"
+    },
+    "allowedResources": [
+      "deployment-status"
+    ],
+    "allowedSequences": [],
+    "baselineCoverage": {
+      "tools": {
+        "reason": "the baseline domain is supported by source evidence",
+        "status": "PRESENT",
+        "critical": true,
+        "evidence": [
+          {
+            "line": 7,
+            "type": "source",
+            "adapter": "openai-agents",
+            "location": "agent.py",
+            "adapterVersion": "0.2.0",
+            "discoveryMethod": "python_ast"
+          }
+        ],
+        "confidence": "CONFIRMED"
+      },
+      "agents": {
+        "reason": "the baseline domain is supported by source evidence",
+        "status": "PRESENT",
+        "critical": false,
+        "evidence": [
+          {
+            "line": 13,
+            "type": "source",
+            "adapter": "openai-agents",
+            "location": "agent.py",
+            "adapterVersion": "0.2.0",
+            "discoveryMethod": "python_ast"
+          }
+        ],
+        "confidence": "CONFIRMED"
+      },
+      "egress": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": true,
+        "confidence": "UNKNOWN"
+      },
+      "inputs": {
+        "reason": "the baseline domain is supported by source evidence",
+        "status": "PRESENT",
+        "critical": true,
+        "evidence": [
+          {
+            "line": 24,
+            "type": "source",
+            "adapter": "openai-agents",
+            "location": "agent.py",
+            "adapterVersion": "0.2.0",
+            "discoveryMethod": "python_ast"
+          }
+        ],
+        "confidence": "CONFIRMED"
+      },
+      "memory": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": false,
+        "confidence": "UNKNOWN"
+      },
+      "models": {
+        "reason": "the baseline domain is supported by source evidence",
+        "status": "PRESENT",
+        "critical": false,
+        "evidence": [
+          {
+            "line": 13,
+            "type": "source",
+            "adapter": "openai-agents",
+            "location": "agent.py",
+            "adapterVersion": "0.2.0",
+            "discoveryMethod": "python_ast"
+          }
+        ],
+        "confidence": "CONFIRMED"
+      },
+      "autonomy": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": true,
+        "confidence": "UNKNOWN"
+      },
+      "approvals": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": true,
+        "confidence": "UNKNOWN"
+      },
+      "execution": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": true,
+        "confidence": "UNKNOWN"
+      },
+      "resources": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": true,
+        "confidence": "UNKNOWN"
+      },
+      "sequences": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": true,
+        "confidence": "UNKNOWN"
+      },
+      "delegation": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": false,
+        "confidence": "UNKNOWN"
+      },
+      "identities": {
+        "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+        "status": "UNKNOWN",
+        "critical": true,
+        "confidence": "UNKNOWN"
+      }
+    },
+    "allowedIdentities": [
+      "github-actions"
+    ],
+    "allowedPeerAgents": [],
+    "evidenceAssessment": {
+      "status": "SUFFICIENT",
+      "limitations": [
+        {
+          "code": "STATIC_ANALYSIS_BOUNDARY",
+          "message": "Static source analysis cannot prove runtime behavior; attach telemetry to validate the observed graph.",
+          "severity": "info"
+        }
+      ],
+      "relationships": 4,
+      "approvalEligible": true,
+      "connectedEntities": 5,
+      "productionEntities": 5,
+      "relationshipCoverage": 1
+    }
+  },
+  "approval": {
+    "status": "approved",
+    "gitCommit": "9927270313e3b44da97b1db75e6a083d3e4ca740",
+    "approvedAt": "2026-08-17T09:58:21Z",
+    "approvedBy": "usr_d2a4c63e1618ecced827b6a2c8a1f440",
+    "manifestDigest": "16341e7b7ebac02dd6b182d7aa956eac5f24230b158ec6ee6706bce497783e6d",
+    "sourceBaseline": {
+      "policy": {
+        "toolDrift": "deny",
+        "inputDrift": "deny",
+        "egressDrift": "deny",
+        "memoryDrift": "deny",
+        "approvalDrift": "critical",
+        "autonomyDrift": "critical",
+        "identityDrift": "deny",
+        "resourceDrift": "deny",
+        "sequenceDrift": "critical",
+        "approvalBypass": "critical",
+        "executionDrift": "critical",
+        "privilegeDrift": "deny",
+        "undeclaredTool": "deny",
+        "delegationDrift": "deny",
+        "undeclaredEgress": "deny",
+        "requiredTelemetry": [
+          "TOOL_DRIFT",
+          "PRIVILEGE_DRIFT",
+          "IDENTITY_DRIFT",
+          "RESOURCE_DRIFT",
+          "EGRESS_DRIFT",
+          "INPUT_DRIFT",
+          "MEMORY_DRIFT",
+          "DELEGATION_DRIFT",
+          "APPROVAL_DRIFT",
+          "EXECUTION_DRIFT",
+          "AUTONOMY_DRIFT",
+          "SEQUENCE_DRIFT"
+        ],
+        "maxTelemetryAgeMinutes": 1440
+      },
+      "autonomy": {},
+      "framework": "openai-agents",
+      "allowedTools": [
+        "read_status"
+      ],
+      "toolPolicies": [
+        {
+          "name": "read_status",
+          "capabilities": [
+            "SENSITIVE_READ"
+          ]
+        }
+      ],
+      "allowedAgents": [
+        "v2_release_agent"
+      ],
+      "allowedEgress": [],
+      "allowedMemory": [],
+      "allowedModels": [
+        "gpt-5-mini"
+      ],
+      "allowedScopes": [],
+      "codeExecution": {
+        "allowed": false
+      },
+      "compatibility": [
+        {
+          "reason": "exact dependency evidence resolved to a tested supported pairing",
+          "status": "supported",
+          "package": "openai-agents",
+          "version": "0.19.4",
+          "evidence": [
+            {
+              "line": 1,
+              "type": "dependency_version",
+              "location": "requirements.txt",
+              "discoveryMethod": "version_manifest:requirements.txt"
+            },
+            {
+              "line": 5,
+              "type": "dependency_version",
+              "location": "uv.lock",
+              "discoveryMethod": "version_manifest:uv.lock"
+            },
+            {
+              "line": 1,
+              "type": "dependency_version",
+              "location": "requirements.txt",
+              "discoveryMethod": "version_manifest:requirements.txt"
+            },
+            {
+              "line": 5,
+              "type": "dependency_version",
+              "location": "uv.lock",
+              "discoveryMethod": "version_manifest:uv.lock"
+            }
+          ],
+          "language": "python",
+          "pluginId": "ultra13.openai_agents.python.v0_19",
+          "ecosystem": "pypi",
+          "framework": "openai-agents",
+          "confidence": "CONFIRMED",
+          "constraint": "==0.19.4",
+          "pluginVersion": "0.2.0",
+          "upstreamCommit": "92aa1b905306d7f5a130d911061c44cddeaa6e20"
+        }
+      ],
+      "humanApproval": {
+        "requiredFor": []
+      },
+      "inputPolicies": [
+        {
+          "trust": [
+            "untrusted"
+          ],
+          "sourceType": "handle input"
+        }
+      ],
+      "maestroPolicy": {
+        "requiredLayers": [
+          "L1",
+          "L2",
+          "L3",
+          "L4",
+          "L5",
+          "L6",
+          "L7"
+        ],
+        "blockConfirmedSeverity": "high",
+        "blockSuspectedCritical": true,
+        "blockNewCrossLayerPaths": true,
+        "maximumCriticalUnknowns": 0,
+        "maximumEvidenceAgeMinutes": 60
+      },
+      "deploymentUnit": {
+        "id": "unit_818c30d51774f002625f53931df0e514",
+        "commit": "9927270313e3b44da97b1db75e6a083d3e4ca740",
+        "evidence": [
+          {
+            "type": "build",
+            "location": "Dockerfile",
+            "discoveryMethod": "static_anchor@ultra13-deployment-discovery/v10"
+          },
+          {
+            "type": "manifest",
+            "location": "requirements.txt",
+            "discoveryMethod": "static_anchor@ultra13-deployment-discovery/v10"
+          },
+          {
+            "type": "lock",
+            "location": "uv.lock",
+            "discoveryMethod": "static_anchor@ultra13-deployment-discovery/v10"
+          },
+          {
+            "type": "framework_source",
+            "location": "agent.py",
+            "discoveryMethod": "static_signature@ultra13-deployment-discovery/v10"
+          },
+          {
+            "type": "entrypoint",
+            "location": "agent.py",
+            "discoveryMethod": "static_entrypoint@ultra13-deployment-discovery/v10"
+          },
+          {
+            "type": "entrypoint",
+            "location": "test_agent.py",
+            "discoveryMethod": "static_entrypoint@ultra13-deployment-discovery/v10"
+          }
+        ],
+        "buildPath": "Dockerfile",
+        "lockPaths": [
+          "uv.lock"
+        ],
+        "entrypoint": "agent.py",
+        "repository": "tommycharade/ultra13-v2-e2e-agent",
+        "selectedAt": "2026-08-17T09:57:46.332586445Z",
+        "selectedBy": "usr_d2a4c63e1618ecced827b6a2c8a1f440",
+        "candidateId": "cand_882d33cec12290a7422c57035d00316f",
+        "buildContext": ".",
+        "sourceDigest": "sha256:e32428e24f8c96d9557e730c9417871212be10124ff8b9607071b493348e3d3e",
+        "manifestPaths": [
+          "requirements.txt"
+        ],
+        "schemaVersion": "ultra13.deployment-unit/v1alpha1",
+        "applicationRoot": ".",
+        "detectorVersion": "ultra13-deployment-discovery/v10",
+        "selectionReason": "GitHub Actions now reproduces this exact V2-selected repository root, entrypoint, Dockerfile, production Lambda target and AWS region.",
+        "deploymentRegion": "eu-west-2",
+        "deploymentTarget": "aws-lambda",
+        "deploymentProfile": "production",
+        "configurationDigest": "sha256:818c30d51774f002625f53931df0e5141b0d26eb4e6f566dc69601ebb6a12581"
+      },
+      "allowedResources": [],
+      "allowedSequences": [],
+      "baselineCoverage": {
+        "tools": {
+          "reason": "the baseline domain is supported by source evidence",
+          "status": "PRESENT",
+          "critical": true,
+          "evidence": [
+            {
+              "line": 7,
+              "type": "source",
+              "adapter": "openai-agents",
+              "location": "agent.py",
+              "adapterVersion": "0.2.0",
+              "discoveryMethod": "python_ast"
+            }
+          ],
+          "confidence": "CONFIRMED"
+        },
+        "agents": {
+          "reason": "the baseline domain is supported by source evidence",
+          "status": "PRESENT",
+          "critical": false,
+          "evidence": [
+            {
+              "line": 13,
+              "type": "source",
+              "adapter": "openai-agents",
+              "location": "agent.py",
+              "adapterVersion": "0.2.0",
+              "discoveryMethod": "python_ast"
+            }
+          ],
+          "confidence": "CONFIRMED"
+        },
+        "egress": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": true,
+          "confidence": "UNKNOWN"
+        },
+        "inputs": {
+          "reason": "the baseline domain is supported by source evidence",
+          "status": "PRESENT",
+          "critical": true,
+          "evidence": [
+            {
+              "line": 24,
+              "type": "source",
+              "adapter": "openai-agents",
+              "location": "agent.py",
+              "adapterVersion": "0.2.0",
+              "discoveryMethod": "python_ast"
+            }
+          ],
+          "confidence": "CONFIRMED"
+        },
+        "memory": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": false,
+          "confidence": "UNKNOWN"
+        },
+        "models": {
+          "reason": "the baseline domain is supported by source evidence",
+          "status": "PRESENT",
+          "critical": false,
+          "evidence": [
+            {
+              "line": 13,
+              "type": "source",
+              "adapter": "openai-agents",
+              "location": "agent.py",
+              "adapterVersion": "0.2.0",
+              "discoveryMethod": "python_ast"
+            }
+          ],
+          "confidence": "CONFIRMED"
+        },
+        "autonomy": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": true,
+          "confidence": "UNKNOWN"
+        },
+        "approvals": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": true,
+          "confidence": "UNKNOWN"
+        },
+        "execution": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": true,
+          "confidence": "UNKNOWN"
+        },
+        "resources": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": true,
+          "confidence": "UNKNOWN"
+        },
+        "sequences": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": true,
+          "confidence": "UNKNOWN"
+        },
+        "delegation": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": false,
+          "confidence": "UNKNOWN"
+        },
+        "identities": {
+          "reason": "no supported evidence established whether this baseline domain is absent or undiscovered",
+          "status": "UNKNOWN",
+          "critical": true,
+          "confidence": "UNKNOWN"
+        }
+      },
+      "allowedIdentities": [],
+      "allowedPeerAgents": [],
+      "evidenceAssessment": {
+        "status": "SUFFICIENT",
+        "limitations": [
+          {
+            "code": "STATIC_ANALYSIS_BOUNDARY",
+            "message": "Static source analysis cannot prove runtime behavior; attach telemetry to validate the observed graph.",
+            "severity": "info"
+          }
+        ],
+        "relationships": 4,
+        "approvalEligible": true,
+        "connectedEntities": 5,
+        "productionEntities": 5,
+        "relationshipCoverage": 1
+      }
+    },
+    "acceptedUnknowns": [
+      "approvals",
+      "autonomy",
+      "delegation",
+      "egress",
+      "execution",
+      "identities",
+      "memory",
+      "resources",
+      "sequences"
+    ],
+    "attestationReason": "The repository remains provider-free and read-only. The new revision only corrects CI identity and evidence-path reproducibility; deployment-bound runtime evidence will verify the nine explicit Unknown domains before release.",
+    "desiredStateFields": [
+      "allowedAgents",
+      "allowedEgress",
+      "allowedIdentities",
+      "allowedMemory",
+      "allowedModels",
+      "allowedPeerAgents",
+      "allowedResources",
+      "allowedScopes",
+      "allowedSequences",
+      "allowedTools",
+      "autonomy",
+      "codeExecution",
+      "humanApproval",
+      "inputPolicies"
+    ]
+  },
+  "metadata": {
+    "name": "app_33bbd926490f6ed4aa03554b9ec34577",
+    "generatedAt": "2026-08-17T09:57:50Z",
+    "applicationId": "app_33bbd926490f6ed4aa03554b9ec34577"
+  },
+  "apiVersion": "ultra13/v1alpha1"
+}

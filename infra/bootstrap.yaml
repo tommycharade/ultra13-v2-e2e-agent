@@ -8,6 +8,12 @@ Parameters:
   GitHubRepository:
     Type: String
     Default: ultra13-v2-e2e-agent
+  GitHubOrganizationId:
+    Type: String
+    Default: "3448706"
+  GitHubRepositoryId:
+    Type: String
+    Default: "1336942307"
 
 Resources:
   Repository:
@@ -21,6 +27,19 @@ Resources:
         EncryptionType: AES256
       LifecyclePolicy:
         LifecyclePolicyText: '{"rules":[{"rulePriority":1,"description":"Retain ten immutable acceptance images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":10},"action":{"type":"expire"}}]}'
+      RepositoryPolicyText:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: LambdaImagePull
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+            Condition:
+              StringLike:
+                aws:SourceArn: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:ultra13-v2-e2e-agent
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -51,7 +70,7 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
               StringLike:
-                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${GitHubRepository}:*
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}@${GitHubOrganizationId}/${GitHubRepository}@${GitHubRepositoryId}:*
       Policies:
         - PolicyName: deploy-one-acceptance-agent
           PolicyDocument:

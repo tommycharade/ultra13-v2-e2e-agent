@@ -22,3 +22,7 @@ root = Agent(
 def handle(user_input: str):
     """Native SDK input boundary; provider execution is not used by the deployment test."""
     return Runner.run_sync(root, user_input)
+
+
+if __name__ == "__main__":
+    print("Ultra13 V2 acceptance agent; provider execution is disabled.")

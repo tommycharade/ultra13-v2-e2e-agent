@@ -55,6 +55,16 @@ jobs:
         run: |
           chmod 755 tools/ultra13
           mkdir -p "${ULTRA13_OUT}"
+          tools/ultra13 ci-baseline \
+            --endpoint "${ULTRA13_API_ENDPOINT}" \
+            --tenant "${ULTRA13_TENANT_ID}" \
+            --registration "${ULTRA13_CI_REGISTRATION}" \
+            --repository "${GITHUB_REPOSITORY}" \
+            --revision "${GITHUB_SHA}" \
+            --ref "${GITHUB_REF}" \
+            --environment production \
+            --pipeline "github-actions:${GITHUB_RUN_ID}" \
+            --output "${ULTRA13_OUT}/approved-baseline.yaml"
           tools/ultra13 discover \
             --repository "${GITHUB_REPOSITORY}" \
             --revision "${GITHUB_SHA}" \
@@ -77,14 +87,10 @@ jobs:
             --expected-framework-version 0.19.4 \
             --selected-by "ci:${GITHUB_RUN_ID}" \
             --selection-reason "GitHub Actions verified the only production Lambda deployment unit at this immutable revision." .
-          baseline=()
-          if [[ -f .ultra13/approved-baseline.yaml ]]; then
-            baseline=(--approved-manifest .ultra13/approved-baseline.yaml)
-          fi
           set +e
           tools/ultra13 validate \
             --manifest "${ULTRA13_OUT}/ultra13-manifest.yaml" \
-            "${baseline[@]}" \
+            --approved-manifest "${ULTRA13_OUT}/approved-baseline.yaml" \
             --require-scoped \
             --block-severity high \
             --git-revision "${GITHUB_SHA}" \

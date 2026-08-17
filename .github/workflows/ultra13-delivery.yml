@@ -34,6 +34,7 @@ jobs:
       ULTRA13_CI_REGISTRATION: ${{ vars.ULTRA13_CI_REGISTRATION }}
       ULTRA13_CI_SECRET: ${{ secrets.ULTRA13_CI_SECRET }}
       ULTRA13_RUNTIME_TOKEN: ${{ secrets.ULTRA13_RUNTIME_TOKEN }}
+      ULTRA13_OUT: ${{ runner.temp }}/ultra13-out
     steps:
       - uses: actions/checkout@v4
 
@@ -53,17 +54,27 @@ jobs:
         shell: bash
         run: |
           chmod 755 tools/ultra13
-          mkdir -p .ultra13/out
+          mkdir -p "${ULTRA13_OUT}"
           tools/ultra13 discover \
             --repository "${GITHUB_REPOSITORY}" \
             --revision "${GITHUB_SHA}" \
-            --output .ultra13/out/ultra13-candidates.json .
+            --output "${ULTRA13_OUT}/ultra13-candidates.json" .
           tools/ultra13 scan \
             --application-id "${ULTRA13_APPLICATION_ID}" \
-            --output-dir .ultra13/out \
+            --output-dir "${ULTRA13_OUT}" \
             --repository "${GITHUB_REPOSITORY}" \
             --revision "${GITHUB_SHA}" \
-            --application-config .ultra13/application.yaml \
+            --application-root . \
+            --manifest requirements.txt \
+            --lockfile uv.lock \
+            --entrypoint agent.py \
+            --build-context . \
+            --deployment-config Dockerfile \
+            --deployment-profile production \
+            --deployment-target aws-lambda \
+            --deployment-region eu-west-2 \
+            --expected-framework openai-agents \
+            --expected-framework-version 0.19.4 \
             --selected-by "ci:${GITHUB_RUN_ID}" \
             --selection-reason "GitHub Actions verified the only production Lambda deployment unit at this immutable revision." .
           baseline=()
@@ -72,16 +83,16 @@ jobs:
           fi
           set +e
           tools/ultra13 validate \
-            --manifest .ultra13/out/ultra13-manifest.yaml \
+            --manifest "${ULTRA13_OUT}/ultra13-manifest.yaml" \
             "${baseline[@]}" \
             --require-scoped \
             --block-severity high \
             --git-revision "${GITHUB_SHA}" \
             --environment production \
             --pipeline "github-actions:${GITHUB_RUN_ID}" \
-            --report-json .ultra13/out/decision.json \
-            --sarif .ultra13/out/findings.sarif \
-            .ultra13/out/ultra13-threat-model.yaml
+            --report-json "${ULTRA13_OUT}/decision.json" \
+            --sarif "${ULTRA13_OUT}/findings.sarif" \
+            "${ULTRA13_OUT}/ultra13-threat-model.yaml"
           gate_status=$?
           set -e
           echo "status=${gate_status}" >> "${GITHUB_OUTPUT}"
@@ -90,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ultra13-evidence-${{ github.sha }}
-          path: .ultra13/out
+          path: ${{ env.ULTRA13_OUT }}
           retention-days: 30
 
       - name: Configure AWS workload identity
@@ -161,8 +172,8 @@ jobs:
             --environment production \
             --pipeline "github-actions:${GITHUB_RUN_ID}" \
             --idempotency-key "github-actions-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
-            --report .ultra13/out/decision.json \
-            --sarif .ultra13/out/findings.sarif
+            --report "${ULTRA13_OUT}/decision.json" \
+            --sarif "${ULTRA13_OUT}/findings.sarif"
 
       - name: Enforce the security gate
         if: steps.gate.outputs.status != '0'

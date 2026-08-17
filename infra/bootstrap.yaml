@@ -51,7 +51,7 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
               StringLike:
-                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${GitHubRepository}:ref:refs/heads/main
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${GitHubRepository}:*
       Policies:
         - PolicyName: deploy-one-acceptance-agent
           PolicyDocument:
@@ -93,4 +93,3 @@ Outputs:
     Value: !GetAtt LambdaExecutionRole.Arn
   RepositoryUri:
     Value: !GetAtt Repository.RepositoryUri
-

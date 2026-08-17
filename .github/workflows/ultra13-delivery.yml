@@ -34,7 +34,7 @@ jobs:
       ULTRA13_CI_REGISTRATION: ${{ vars.ULTRA13_CI_REGISTRATION }}
       ULTRA13_CI_SECRET: ${{ secrets.ULTRA13_CI_SECRET }}
       ULTRA13_RUNTIME_TOKEN: ${{ secrets.ULTRA13_RUNTIME_TOKEN }}
-      ULTRA13_OUT: ${{ runner.temp }}/ultra13-out
+      ULTRA13_OUT: /tmp/ultra13-out
     steps:
       - uses: actions/checkout@v4
 

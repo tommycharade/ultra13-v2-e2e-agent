@@ -1,0 +1,16 @@
+apiVersion: ultra13.dev/v1alpha1
+kind: Application
+metadata:
+  name: ultra13-v2-e2e-agent
+spec:
+  applicationRoot: .
+  manifests: [requirements.txt]
+  lockfiles: [uv.lock]
+  entrypoint: agent.py
+  buildContext: .
+  deploymentConfig: Dockerfile
+  deploymentProfile: production
+  deploymentTarget: aws-lambda
+  deploymentRegion: eu-west-2
+  expectedFramework: openai-agents
+  expectedFrameworkVersion: 0.19.4

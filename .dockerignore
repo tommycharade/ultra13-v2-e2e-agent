@@ -1,0 +1,7 @@
+.git
+.github
+.ultra13/out
+tools
+__pycache__
+*.pyc
+

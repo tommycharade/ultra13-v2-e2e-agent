@@ -1,0 +1,158 @@
+name: Ultra13 build, deploy, and publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      runtime_action:
+        description: Runtime evidence to emit after deployment
+        type: choice
+        options: [control, drift, none]
+        default: control
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+  security-events: write
+
+concurrency:
+  group: ultra13-production
+  cancel-in-progress: false
+
+jobs:
+  secure-delivery:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: eu-west-2
+      ECR_REPOSITORY: ultra13-v2-e2e-agent
+      LAMBDA_FUNCTION: ultra13-v2-e2e-agent
+      ULTRA13_API_ENDPOINT: ${{ vars.ULTRA13_API_ENDPOINT }}
+      ULTRA13_TENANT_ID: ${{ vars.ULTRA13_TENANT_ID }}
+      ULTRA13_APPLICATION_ID: ${{ vars.ULTRA13_APPLICATION_ID }}
+      ULTRA13_CI_REGISTRATION: ${{ vars.ULTRA13_CI_REGISTRATION }}
+      ULTRA13_CI_SECRET: ${{ secrets.ULTRA13_CI_SECRET }}
+      ULTRA13_RUNTIME_TOKEN: ${{ secrets.ULTRA13_RUNTIME_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install and test the supported agent
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt \
+            https://d2w1trq68wilo3.cloudfront.net/downloads/2385ff80af1b02749238cc250d1b21022ebe3385deae1bc4ecb4e02d83412f9b/ultra13_runtime-1.0.0-py3-none-any.whl
+          python -m unittest -v
+
+      - name: Discover, scan, and validate the immutable unit
+        id: gate
+        shell: bash
+        run: |
+          chmod 755 tools/ultra13
+          mkdir -p .ultra13/out
+          tools/ultra13 discover \
+            --repository "${GITHUB_REPOSITORY}" \
+            --revision "${GITHUB_SHA}" \
+            --output .ultra13/out/ultra13-candidates.json .
+          tools/ultra13 scan \
+            --application-id "${ULTRA13_APPLICATION_ID}" \
+            --output-dir .ultra13/out \
+            --repository "${GITHUB_REPOSITORY}" \
+            --revision "${GITHUB_SHA}" \
+            --application-config .ultra13/application.yaml \
+            --selected-by "ci:${GITHUB_RUN_ID}" \
+            --selection-reason "GitHub Actions verified the only production Lambda deployment unit at this immutable revision." .
+          baseline=()
+          if [[ -f .ultra13/approved-baseline.yaml ]]; then
+            baseline=(--approved-manifest .ultra13/approved-baseline.yaml)
+          fi
+          set +e
+          tools/ultra13 validate \
+            --manifest .ultra13/out/ultra13-manifest.yaml \
+            "${baseline[@]}" \
+            --require-scoped \
+            --block-severity high \
+            --git-revision "${GITHUB_SHA}" \
+            --environment production \
+            --pipeline "github-actions:${GITHUB_RUN_ID}" \
+            --report-json .ultra13/out/decision.json \
+            --sarif .ultra13/out/findings.sarif \
+            .ultra13/out/ultra13-threat-model.yaml
+          gate_status=$?
+          set -e
+          echo "status=${gate_status}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload gate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ultra13-evidence-${{ github.sha }}
+          path: .ultra13/out
+          retention-days: 30
+
+      - name: Configure AWS workload identity
+        if: steps.gate.outputs.status == '0'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build and deploy the Lambda container
+        if: steps.gate.outputs.status == '0'
+        shell: bash
+        run: |
+          account_id="$(aws sts get-caller-identity --query Account --output text)"
+          registry="${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          aws ecr get-login-password | docker login --username AWS --password-stdin "${registry}"
+          image="${registry}/${ECR_REPOSITORY}:${GITHUB_SHA}"
+          docker build --provenance=false --tag "${image}" .
+          docker push "${image}"
+          aws lambda update-function-code --function-name "${LAMBDA_FUNCTION}" --image-uri "${image}" >/dev/null
+          aws lambda wait function-updated --function-name "${LAMBDA_FUNCTION}"
+          aws lambda update-function-configuration \
+            --function-name "${LAMBDA_FUNCTION}" \
+            --environment "Variables={ULTRA13_API_ENDPOINT=${ULTRA13_API_ENDPOINT},ULTRA13_APPLICATION_ID=${ULTRA13_APPLICATION_ID},ULTRA13_RUNTIME_TOKEN=${ULTRA13_RUNTIME_TOKEN}}" >/dev/null
+          aws lambda wait function-updated --function-name "${LAMBDA_FUNCTION}"
+
+      - name: Invoke deployed runtime evidence
+        if: steps.gate.outputs.status == '0' && inputs.runtime_action != 'none'
+        shell: bash
+        run: |
+          aws lambda invoke \
+            --function-name "${LAMBDA_FUNCTION}" \
+            --cli-binary-format raw-in-base64-out \
+            --payload "{\"action\":\"${{ inputs.runtime_action || 'control' }}\",\"session\":\"github-${GITHUB_RUN_ID}\"}" \
+            lambda-response.json >/dev/null
+          python - <<'PY'
+          import json
+          response = json.load(open("lambda-response.json", encoding="utf-8"))
+          assert response["statusCode"] == 200, response
+          body = json.loads(response["body"])
+          assert body["telemetry"] in {"accepted", "not-configured"}, body
+          print(body)
+          PY
+
+      - name: Publish the current or candidate decision to Ultra13 V2
+        if: always() && steps.gate.outcome == 'success'
+        shell: bash
+        run: |
+          tools/ultra13 ci-publish \
+            --endpoint "${ULTRA13_API_ENDPOINT}" \
+            --tenant "${ULTRA13_TENANT_ID}" \
+            --application "${ULTRA13_APPLICATION_ID}" \
+            --registration "${ULTRA13_CI_REGISTRATION}" \
+            --repository "${GITHUB_REPOSITORY}" \
+            --revision "${GITHUB_SHA}" \
+            --ref "${GITHUB_REF}" \
+            --environment production \
+            --pipeline "github-actions:${GITHUB_RUN_ID}" \
+            --idempotency-key "github-actions-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --report .ultra13/out/decision.json \
+            --sarif .ultra13/out/findings.sarif
+
+      - name: Enforce the security gate
+        if: steps.gate.outputs.status != '0'
+        run: exit 1
+

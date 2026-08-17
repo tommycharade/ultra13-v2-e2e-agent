@@ -22,6 +22,7 @@ concurrency:
 
 jobs:
   secure-delivery:
+    if: vars.ULTRA13_APPLICATION_ID != ''
     runs-on: ubuntu-latest
     env:
       AWS_REGION: eu-west-2
@@ -109,7 +110,18 @@ jobs:
           image="${registry}/${ECR_REPOSITORY}:${GITHUB_SHA}"
           docker build --provenance=false --tag "${image}" .
           docker push "${image}"
-          aws lambda update-function-code --function-name "${LAMBDA_FUNCTION}" --image-uri "${image}" >/dev/null
+          if aws lambda get-function --function-name "${LAMBDA_FUNCTION}" >/dev/null 2>&1; then
+            aws lambda update-function-code --function-name "${LAMBDA_FUNCTION}" --image-uri "${image}" >/dev/null
+          else
+            aws lambda create-function \
+              --function-name "${LAMBDA_FUNCTION}" \
+              --package-type Image \
+              --code "ImageUri=${image}" \
+              --role "${{ vars.AWS_LAMBDA_EXECUTION_ROLE_ARN }}" \
+              --architectures x86_64 \
+              --timeout 20 \
+              --memory-size 512 >/dev/null
+          fi
           aws lambda wait function-updated --function-name "${LAMBDA_FUNCTION}"
           aws lambda update-function-configuration \
             --function-name "${LAMBDA_FUNCTION}" \
@@ -155,4 +167,3 @@ jobs:
       - name: Enforce the security gate
         if: steps.gate.outputs.status != '0'
         run: exit 1
-

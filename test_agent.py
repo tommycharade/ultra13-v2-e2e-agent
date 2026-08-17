@@ -16,7 +16,9 @@ class AgentDeploymentTest(unittest.TestCase):
 
     def test_repeat_delivery_reuses_the_immutable_revision(self) -> None:
         workflow = Path(".github/workflows/ultra13-delivery.yml").read_text(encoding="utf-8")
+        bootstrap = Path("infra/bootstrap.yaml").read_text(encoding="utf-8")
         self.assertIn('--image-ids "imageTag=${GITHUB_SHA}"', workflow)
+        self.assertIn("- ecr:DescribeImages", bootstrap)
         self.assertIn('if [ "${current_image}" != "${image}" ]', workflow)
         self.assertIn('Lambda already runs the immutable image for ${GITHUB_SHA}.', workflow)
 

@@ -11,6 +11,11 @@ runtime evidence, and publishes the revision decision plus SARIF into Ultra13
 V2. The manifest is fetched into the runner's temporary directory rather than
 committed, avoiding a self-referential baseline commit.
 
+Repeat dispatches are idempotent for the immutable revision: the workflow
+reuses the existing SHA-tagged ECR image and skips a no-op Lambda code update,
+while still refreshing the deployment credential and invoking the selected
+control or drift evidence path.
+
 `infra/bootstrap.yaml` creates the repository-scoped GitHub OIDC role, a
 least-privilege Lambda execution role, and an immutable, scan-on-push ECR
 repository. No long-lived AWS credential is stored in GitHub.

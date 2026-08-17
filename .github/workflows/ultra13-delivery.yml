@@ -123,12 +123,23 @@ jobs:
         run: |
           account_id="$(aws sts get-caller-identity --query Account --output text)"
           registry="${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-          aws ecr get-login-password | docker login --username AWS --password-stdin "${registry}"
           image="${registry}/${ECR_REPOSITORY}:${GITHUB_SHA}"
-          docker build --provenance=false --tag "${image}" .
-          docker push "${image}"
+          if aws ecr describe-images --repository-name "${ECR_REPOSITORY}" \
+            --image-ids "imageTag=${GITHUB_SHA}" >/dev/null 2>&1; then
+            echo "Reusing the immutable image already published for ${GITHUB_SHA}."
+          else
+            aws ecr get-login-password | docker login --username AWS --password-stdin "${registry}"
+            docker build --provenance=false --tag "${image}" .
+            docker push "${image}"
+          fi
           if aws lambda get-function --function-name "${LAMBDA_FUNCTION}" >/dev/null 2>&1; then
-            aws lambda update-function-code --function-name "${LAMBDA_FUNCTION}" --image-uri "${image}" >/dev/null
+            current_image="$(aws lambda get-function --function-name "${LAMBDA_FUNCTION}" --query 'Code.ImageUri' --output text)"
+            if [ "${current_image}" != "${image}" ]; then
+              aws lambda update-function-code --function-name "${LAMBDA_FUNCTION}" --image-uri "${image}" >/dev/null
+              aws lambda wait function-updated --function-name "${LAMBDA_FUNCTION}"
+            else
+              echo "Lambda already runs the immutable image for ${GITHUB_SHA}."
+            fi
           else
             aws lambda create-function \
               --function-name "${LAMBDA_FUNCTION}" \
@@ -138,8 +149,8 @@ jobs:
               --architectures x86_64 \
               --timeout 20 \
               --memory-size 512 >/dev/null
+            aws lambda wait function-active-v2 --function-name "${LAMBDA_FUNCTION}"
           fi
-          aws lambda wait function-updated --function-name "${LAMBDA_FUNCTION}"
           aws lambda update-function-configuration \
             --function-name "${LAMBDA_FUNCTION}" \
             --environment "Variables={ULTRA13_API_ENDPOINT=${ULTRA13_API_ENDPOINT},ULTRA13_APPLICATION_ID=${ULTRA13_APPLICATION_ID},ULTRA13_RUNTIME_TOKEN=${ULTRA13_RUNTIME_TOKEN}}" >/dev/null

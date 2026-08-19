@@ -36,9 +36,9 @@ jobs:
       ULTRA13_RUNTIME_TOKEN: ${{ secrets.ULTRA13_RUNTIME_TOKEN }}
       ULTRA13_OUT: /tmp/ultra13-out
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.12"
           cache: pip
@@ -104,7 +104,7 @@ jobs:
           echo "status=${gate_status}" >> "${GITHUB_OUTPUT}"
 
       - name: Upload gate evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ultra13-evidence-${{ github.sha }}
           path: ${{ env.ULTRA13_OUT }}
@@ -112,7 +112,7 @@ jobs:
 
       - name: Configure AWS workload identity
         if: steps.gate.outputs.status == '0'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}

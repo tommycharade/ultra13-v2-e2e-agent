@@ -21,6 +21,13 @@ least-privilege Lambda execution role, and an immutable, scan-on-push ECR
 repository. No long-lived AWS credential is stored in GitHub.
 
 The application is content-free and does not call a model provider. Its normal
-runtime path exposes only `read_status` and the reviewed `read_metrics`. The `drift` invocation is an explicit
-QA-only signal used to verify that an unapproved privileged tool call blocks the
-current release decision.
+runtime path exposes only `read_status` and the reviewed `read_metrics`. The
+deployment reports its GitHub Actions OIDC workload identity, trusted CI
+dispatch input, `status:read` authority, local-only egress, production status
+resource, and supervised autonomy mode. Those deployment facts are explicitly
+declared in the Ultra13 owner baseline; they are not inferred as safe from
+their absence in static source.
+
+The `drift` invocation is an explicit QA-only signal used to verify that an
+unapproved privileged tool call blocks the current release decision. A later
+`control` invocation proves recovery against the same immutable owner intent.

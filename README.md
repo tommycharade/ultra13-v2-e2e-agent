@@ -28,6 +28,10 @@ resource, and supervised autonomy mode. Those deployment facts are explicitly
 declared in the Ultra13 owner baseline; they are not inferred as safe from
 their absence in static source.
 
+The structured owner policies bind `github-actions | oidc` and
+`deployment-status | production`, keeping the principal/resource names
+separate from their credential type and environment constraints.
+
 The `drift` invocation is an explicit QA-only signal used to verify that an
 unapproved privileged tool call blocks the current release decision. A later
 `control` invocation proves recovery against the same immutable owner intent.
